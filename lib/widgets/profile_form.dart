@@ -5,12 +5,14 @@ class ProfileForm extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController bioController;
+  final bool isEditing;
 
   const ProfileForm({
     super.key,
     required this.nameController,
     required this.emailController,
     required this.bioController,
+    required this.isEditing,
   });
 
   @override
@@ -22,6 +24,7 @@ class ProfileForm extends StatelessWidget {
           label: 'Full Name',
           icon: Icons.person_outline,
           obscureText: false,
+          isEditing: isEditing,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter your full name';
@@ -38,6 +41,7 @@ class ProfileForm extends StatelessWidget {
           label: 'Email Address',
           icon: Icons.email_outlined,
           obscureText: false,
+          isEditing: isEditing,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter your email address';
@@ -56,6 +60,7 @@ class ProfileForm extends StatelessWidget {
         CustomTextField(
           controller: bioController,
           label: 'Bio',
+          isEditing: isEditing,
           icon: Icons.description_outlined,
           maxLines: 3,
           obscureText: false,

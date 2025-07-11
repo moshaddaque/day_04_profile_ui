@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:animated_bubble_background/animated_bubble_background.dart';
 import 'package:day_04_profile_ui/widgets/action_buttons.dart';
 import 'package:day_04_profile_ui/widgets/header_section.dart';
 import 'package:day_04_profile_ui/widgets/profile_avater_section.dart';
@@ -48,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _initializeAnimations() {
     _avaterAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(microseconds: 500),
+      duration: const Duration(milliseconds: 500), // Fixed: was microseconds
     );
     _fadeAnimationController = AnimationController(
       vsync: this,
@@ -75,14 +76,13 @@ class _ProfileScreenState extends State<ProfileScreen>
   // load initial data
   Future<void> _loadInitialData() async {
     // basic given data
-    _nameController.text = 'John Doe';
-    _emailController.text = 'john.doe@gmail.com';
+    _nameController.text = 'Mizan Hoshain';
+    _emailController.text = 'mizanhoshain@gmail.com';
     _bioController.text =
         'Flutter Developer passionate about creating beautiful mobile experiences.';
   }
 
   // image picker function
-
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -126,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       _isLoading = true;
     });
 
-    // simulate ipi call
+    // simulate api call
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
@@ -138,6 +138,34 @@ class _ProfileScreenState extends State<ProfileScreen>
     HapticFeedback.lightImpact();
   }
 
+  // Get bubble colors based on theme
+  List<Color> _getBubbleColors() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).primaryColor;
+
+    if (isDarkMode) {
+      return [
+        primaryColor,
+        primaryColor.withBlue(255),
+        primaryColor.withGreen(200),
+        Colors.deepPurple,
+        Colors.indigo,
+        Colors.teal,
+        Colors.cyan,
+      ];
+    } else {
+      return [
+        primaryColor.withOpacity(0.8),
+        Colors.blue.withOpacity(0.6),
+        Colors.purple.withOpacity(0.6),
+        Colors.pink.withOpacity(0.6),
+        Colors.cyan.withOpacity(0.6),
+        Colors.teal.withOpacity(0.6),
+        Colors.indigo.withOpacity(0.6),
+      ];
+    }
+  }
+
   //=============== ui ===========================
 
   @override
@@ -145,71 +173,73 @@ class _ProfileScreenState extends State<ProfileScreen>
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
+
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : Colors.grey[50],
+      body: AnimatedBubbleBackground(
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 40 : 20,
+                  vertical: 20,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      // Header Section
+                      HeaderSection(
+                        isEditing: _isEditing,
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = !_isEditing;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 40),
 
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 40 : 20,
-                vertical: 20,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // Header Section
-                    HeaderSection(
-                      isEditing: _isEditing,
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = !_isEditing;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 40),
+                      // profile avater section
+                      ProfileAvatarSection(
+                        scaleAnimation: _avatarScaleAnimation,
+                        isEditing: _isEditing,
+                        profileImage: _profileImage,
+                        removeImage: _removeImage,
+                        pickImage: _pickImage,
+                      ),
 
-                    // profile avater section
-                    ProfileAvatarSection(
-                      scaleAnimation: _avatarScaleAnimation,
-                      isEditing: _isEditing,
-                      profileImage: _profileImage,
-                      removeImage: _removeImage,
-                      pickImage: _pickImage,
-                    ),
+                      const SizedBox(height: 30),
 
-                    // _buildProfileAvatar(),
-                    const SizedBox(height: 30),
+                      // profile form
+                      ProfileForm(
+                        nameController: _nameController,
+                        emailController: _emailController,
+                        bioController: _bioController,
+                        isEditing: _isEditing,
+                      ),
 
-                    // profile form
-                    ProfileForm(
-                      nameController: _nameController,
-                      emailController: _emailController,
-                      bioController: _bioController,
-                    ),
-
-                    const SizedBox(height: 40),
-                    // save button
-                    ActionButtons(
-                      isEditing: _isEditing,
-                      isLoading: _isLoading,
-                      saveProfile: _isLoading ? null : _saveProfile,
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = !_isEditing;
-                        });
-                      },
-                      editProfile: () {
-                        setState(() {
-                          _isEditing = true;
-                        });
-                      },
-                    ),
-                  ],
+                      const SizedBox(height: 40),
+                      // save button
+                      ActionButtons(
+                        isEditing: _isEditing,
+                        isLoading: _isLoading,
+                        saveProfile: _isLoading ? null : _saveProfile,
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = !_isEditing;
+                          });
+                        },
+                        editProfile: () {
+                          setState(() {
+                            _isEditing = true;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -244,7 +274,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   // dispose every controllers
-
   @override
   void dispose() {
     _avaterAnimationController.dispose();
@@ -253,137 +282,5 @@ class _ProfileScreenState extends State<ProfileScreen>
     _emailController.dispose();
     _bioController.dispose();
     super.dispose();
-  }
-
-  //---------------------------------------------
-
-  Widget _buildProfileAvatar() {
-    return Hero(
-      tag: 'profile-avatar',
-      child: GestureDetector(
-        onTap: _isEditing ? _pickImage : null,
-        child: AnimatedBuilder(
-          animation: _avatarScaleAnimation,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _avatarScaleAnimation.value,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Theme.of(context).primaryColor.withOpacity(0.1),
-                      Theme.of(context).primaryColor.withOpacity(0.3),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).primaryColor.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).primaryColor,
-                          width: 3,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child:
-                            _profileImage != null
-                                ? Image.file(
-                                  _profileImage!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildDefaultAvatar();
-                                  },
-                                )
-                                : _buildDefaultAvatar(),
-                      ),
-                    ),
-                    if (_isEditing)
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 35,
-                          height: 35,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    if (_profileImage != null && _isEditing)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: _removeImage,
-                          child: Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                width: 2,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDefaultAvatar() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(context).primaryColor.withOpacity(0.8),
-            Theme.of(context).primaryColor,
-          ],
-        ),
-      ),
-      child: const Icon(Icons.person, color: Colors.white, size: 50),
-    );
   }
 }
